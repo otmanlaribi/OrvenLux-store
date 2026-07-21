@@ -1,69 +1,22 @@
-"use client";
+import LoginForm from "@/components/auth/LoginForm";
+import { redirect } from "next/navigation";
+import { getAdminUser } from "@/lib/security";
 
-import { useState } from "react";
-
-export default function LoginPage() {
-  const [password, setPassword] = useState("");
-
-  function login() {
-    if (password === "orven123") {
-      document.cookie = "admin=true; path=/";
-      window.location.href = "/dashboard";
-    } else {
-      alert("كلمة المرور غير صحيحة");
-    }
+export default async function LoginPage() {
+  if (await getAdminUser()) {
+    redirect("/admin");
   }
 
   return (
-    <main
-      style={{
-        maxWidth: "420px",
-        margin: "120px auto",
-        padding: "30px",
-        background: "#fff",
-        borderRadius: "15px",
-        boxShadow: "0 10px 25px rgba(0,0,0,.15)",
-      }}
-    >
-      <h1
-        style={{
-          textAlign: "center",
-          marginBottom: "25px",
-        }}
-      >
-        🔐 تسجيل دخول الإدارة
-      </h1>
+    <div className="flex min-h-screen items-center justify-center bg-slate-100 px-4">
+      <div className="w-full max-w-md rounded-2xl border border-slate-200 bg-white p-8 shadow-sm">
+        <div className="mb-8 text-center">
+          <h1 className="text-3xl font-bold text-slate-900">ORVEN LUX</h1>
+          <p className="mt-2 text-sm text-slate-500">Admin access portal</p>
+        </div>
 
-      <input
-        type="password"
-        placeholder="كلمة المرور"
-        value={password}
-        onChange={(e) => setPassword(e.target.value)}
-        style={{
-          width: "100%",
-          padding: "14px",
-          marginBottom: "20px",
-          borderRadius: "10px",
-          border: "1px solid #ccc",
-          boxSizing: "border-box",
-        }}
-      />
-
-      <button
-        onClick={login}
-        style={{
-          width: "100%",
-          padding: "14px",
-          background: "#111",
-          color: "#fff",
-          border: "none",
-          borderRadius: "10px",
-          cursor: "pointer",
-          fontSize: "16px",
-        }}
-      >
-        تسجيل الدخول
-      </button>
-    </main>
+        <LoginForm />
+      </div>
+    </div>
   );
 }

@@ -1,10 +1,12 @@
-import { supabase } from "@/lib/supabase";
+import { createClient } from "@/lib/supabase/server";
+import PrintButton from "@/components/orders/PrintButton";
 
 export default async function PrintPage({
   params,
 }: {
   params: Promise<{ id: string }>;
 }) {
+  const supabase = await createClient();
   const { id } = await params;
 
   const { data: order } = await supabase
@@ -118,19 +120,7 @@ export default async function PrintPage({
           marginTop: "40px",
         }}
       >
-        <button
-          style={{
-            padding: "14px 30px",
-            fontSize: "18px",
-            background: "#111",
-            color: "#fff",
-            border: "none",
-            borderRadius: "10px",
-            cursor: "pointer",
-          }}
-        >
-          🖨️ استخدم Ctrl + P للطباعة
-        </button>
+        <PrintButton />
       </div>
     </main>
   );

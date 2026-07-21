@@ -1,0 +1,34 @@
+Always preserve production behavior.
+
+Never break:
+
+- Authentication
+- Authorization
+- Supabase RLS
+- API routes
+- Checkout flow
+- Ecotrack integration
+- CSP
+- Security headers
+
+Always:
+
+- search existing code first
+- reuse components
+- avoid duplication
+- keep TypeScript strict
+- keep lint/build passing
+
+Before implementing:
+
+1. explain root cause
+2. explain implementation
+3. list affected files
+
+After implementing:
+
+- verify imports
+- verify types
+- verify build compatibility
+
+Never fabricate database tables, APIs, environment variables or third-party SDKs.

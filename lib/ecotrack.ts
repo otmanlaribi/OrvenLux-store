@@ -2,17 +2,21 @@ const API_URL = "https://app.ecotrack.dz/api/v1/create/order";
 
 const TOKEN = process.env.ECOTRACK_API_TOKEN!;
 
-export async function sendToEcotrack(order: any) {
+function toStringValue(value: unknown) {
+  return value === undefined || value === null ? "" : String(value);
+}
+
+export async function sendToEcotrack(order: Record<string, unknown>) {
   const params = new URLSearchParams({
-    reference: order.reference,
-    nom_client: order.name,
-    telephone: order.phone,
-    adresse: order.address,
-    commune: order.commune,
-    code_wilaya: String(order.wilaya),
-    montant: String(order.total),
+    reference: toStringValue(order.reference),
+    nom_client: toStringValue(order.name),
+    telephone: toStringValue(order.phone),
+    adresse: toStringValue(order.address),
+    commune: toStringValue(order.commune),
+    code_wilaya: toStringValue(order.wilaya),
+    montant: toStringValue(order.total),
     remarque: "",
-    produit: order.product,
+    produit: toStringValue(order.product),
     stock: "0",
     quantite: "1",
     boutique: "Mon Store",

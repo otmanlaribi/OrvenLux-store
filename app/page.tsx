@@ -1,74 +1,18 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { supabase } from "../lib/supabase";
-import ProductCard from "../components/ProductCard";
+import { ArrowRight, Check, Sparkles, Truck } from "lucide-react";
+import { supabase } from "@/lib/supabase";
+import ProductCard from "@/components/ProductCard";
+import StorefrontNav from "@/components/storefront/StorefrontNav";
+import StorefrontFooter from "@/components/storefront/StorefrontFooter";
 
-type Product = {
-  id: number;
-  name: string;
-  price: number;
-  image: string;
-  description: string;
-};
+type Product = { id: number; name: string; price: number; image: string; description: string };
+
+function ProductSkeleton() { return <div className="animate-pulse overflow-hidden rounded-[1.75rem] border border-stone-200 bg-white"><div className="aspect-[4/5] bg-stone-100" /><div className="space-y-3 p-5"><div className="h-5 w-2/3 rounded bg-stone-100" /><div className="h-4 w-full rounded bg-stone-100" /><div className="h-4 w-1/3 rounded bg-stone-100" /></div></div>; }
 
 export default function Home() {
-  const [products, setProducts] = useState<Product[]>([]);
-
-  useEffect(() => {
-    loadProducts();
-  }, []);
-
- async function loadProducts() {
-  const { data, error } = await supabase
-    .from("products")
-    .select("*")
-    .order("id");
-
-  console.log("DATA =", data);
-  console.log("ERROR =", error);
-
-  if (error) {
-    return;
-  }
-
-  setProducts(data || []);
-}
-
-  return (
-    <main
-      style={{
-        maxWidth: "1000px",
-        margin: "30px auto",
-        padding: "20px",
-      }}
-    >
-      <h1 style={{ textAlign: "center" }}>
-        متجر ORVEN LUX
-      </h1>
-
-      <h2>المنتجات</h2>
-
-      {products.length === 0 ? (
-        <p>لا توجد منتجات.</p>
-      ) : (
-        <div
-  style={{
-    display: "flex",
-    flexWrap: "wrap",
-    gap: "25px",
-    justifyContent: "center",
-    marginTop: "30px",
-  }}
->
-  {products.map((product) => (
-    <ProductCard
-      key={product.id}
-      product={product}
-    />
-  ))}
-</div>
-      )}
-    </main>
-  );
+  const [products, setProducts] = useState<Product[]>([]); const [loading, setLoading] = useState(true);
+  useEffect(() => { let active = true; void supabase.from("products").select("id, name, price, image, description").order("id").then(({ data }) => { if (active) { setProducts(data ?? []); setLoading(false); } }); return () => { active = false; }; }, []);
+  return <div className="min-h-screen bg-[#fbfaf8] text-stone-950"><StorefrontNav /><main><section className="mx-auto grid max-w-7xl gap-10 px-5 pb-16 pt-14 lg:grid-cols-[1.05fr_.95fr] lg:px-8 lg:pb-24 lg:pt-24"><div className="flex flex-col justify-center"><span className="inline-flex w-fit items-center gap-2 rounded-full border border-stone-200 bg-white px-3 py-1.5 text-xs font-semibold text-stone-600"><Sparkles size={14} /> Curated for everyday luxury</span><h1 className="mt-7 max-w-3xl text-5xl font-black leading-[.96] tracking-[-.055em] text-stone-950 sm:text-6xl lg:text-7xl">Objects with a <em className="font-serif font-normal">quiet</em> point of view.</h1><p className="mt-7 max-w-xl text-base leading-7 text-stone-600 sm:text-lg">Discover a considered collection designed to make the everyday feel exceptional. Simple ordering, transparent delivery, no compromise.</p><div className="mt-9 flex flex-wrap gap-3"><a href="#collection" className="inline-flex items-center gap-2 rounded-full bg-stone-950 px-6 py-3.5 text-sm font-semibold text-white transition hover:bg-stone-700">Explore collection <ArrowRight size={17} /></a><a href="#story" className="rounded-full border border-stone-300 px-6 py-3.5 text-sm font-semibold text-stone-800 transition hover:border-stone-950">Why ORVEN LUX</a></div><div className="mt-10 flex flex-wrap gap-x-7 gap-y-3 text-sm text-stone-600"><span className="inline-flex items-center gap-2"><Check size={16} className="text-emerald-700" /> Secure ordering</span><span className="inline-flex items-center gap-2"><Truck size={16} className="text-emerald-700" /> Nationwide delivery</span></div></div><div className="relative min-h-[420px] overflow-hidden rounded-[2rem] bg-stone-900 p-8 sm:p-12"><div className="absolute inset-0 bg-[radial-gradient(circle_at_80%_15%,rgba(245,215,177,.35),transparent_28%),radial-gradient(circle_at_20%_90%,rgba(132,94,50,.45),transparent_33%)]" /><div className="relative flex h-full flex-col justify-between"><span className="text-xs font-semibold uppercase tracking-[.25em] text-stone-300">The edit / 2026</span><div><p className="max-w-sm text-3xl font-medium leading-tight text-white sm:text-4xl">Designed to be noticed, made to be lived with.</p><p className="mt-5 max-w-xs text-sm leading-6 text-stone-300">Explore the current ORVEN LUX selection and find your next favourite.</p></div></div></div></section><section id="collection" className="mx-auto max-w-7xl px-5 py-16 lg:px-8"><div className="flex flex-wrap items-end justify-between gap-5"><div><p className="text-sm font-semibold uppercase tracking-[.16em] text-amber-800">The collection</p><h2 className="mt-3 text-3xl font-black tracking-[-.04em] sm:text-4xl">Featured pieces</h2></div><p className="max-w-sm text-sm leading-6 text-stone-500">Selected for their detail, utility, and the small joy they bring to a space.</p></div><div className="mt-10 grid gap-6 sm:grid-cols-2 lg:grid-cols-3">{loading ? Array.from({ length: 3 }, (_, index) => <ProductSkeleton key={index} />) : products.map((product) => <ProductCard key={product.id} product={product} />)}</div>{!loading && products.length === 0 && <div className="mt-10 rounded-[1.75rem] border border-dashed border-stone-300 bg-white p-12 text-center"><h3 className="text-xl font-semibold">A new collection is on its way.</h3><p className="mt-2 text-sm text-stone-500">Please check back soon for our latest arrivals.</p></div>}</section><section id="story" className="mx-auto max-w-7xl px-5 py-12 lg:px-8"><div className="grid overflow-hidden rounded-[2rem] bg-[#e8dfd2] lg:grid-cols-2"><div className="p-9 sm:p-14"><p className="text-sm font-semibold uppercase tracking-[.16em] text-amber-800">Made for real life</p><h2 className="mt-4 text-3xl font-black tracking-[-.04em] sm:text-4xl">Beautiful should still be easy.</h2><p className="mt-6 max-w-lg leading-7 text-stone-600">Our edit puts lasting materials, thoughtful details, and effortless delivery at the centre of every order.</p></div><div className="min-h-64 bg-[linear-gradient(135deg,#5d4634,#d7b898)]" /></div></section></main><StorefrontFooter /></div>;
 }

@@ -1,0 +1,5 @@
+import Link from "next/link";
+
+export default function StorefrontFooter() {
+  return <footer id="delivery" className="mt-24 bg-stone-950 text-stone-300"><div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 lg:grid-cols-[1.4fr_1fr_1fr] lg:px-8"><div><Link href="/" className="text-xl font-black tracking-[0.22em] text-white">ORVEN LUX</Link><p className="mt-5 max-w-sm text-sm leading-6 text-stone-400">Thoughtfully selected pieces for an elevated everyday. Order online with delivery across Algeria.</p></div><div><p className="text-sm font-semibold text-white">Shop</p><div className="mt-4 flex flex-col gap-3 text-sm"><a href="#collection">All products</a><a href="#story">Our story</a></div></div><div><p className="text-sm font-semibold text-white">Delivery support</p><p className="mt-4 text-sm leading-6 text-stone-400">Choose home delivery or a delivery office at checkout. Your final price is always shown before you confirm.</p></div></div><div className="border-t border-white/10 px-5 py-5 text-center text-xs text-stone-500">© {new Date().getFullYear()} ORVEN LUX. All rights reserved.</div></footer>;
+}

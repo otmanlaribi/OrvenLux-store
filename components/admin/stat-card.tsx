@@ -1,38 +1,7 @@
-import { Card, CardContent } from "@/components/ui/card";
-import { LucideIcon } from "lucide-react";
+import type { LucideIcon } from "lucide-react";
 
-type Props = {
-  title: string;
-  value: string | number;
-  icon: LucideIcon;
-  color?: string;
-};
+type Props = { title: string; value: string | number; icon: LucideIcon; color?: string; detail?: string };
 
-export default function StatCard({
-  title,
-  value,
-  icon: Icon,
-  color = "bg-slate-900",
-}: Props) {
-  return (
-    <Card className="shadow-sm hover:shadow-lg transition-all duration-300">
-      <CardContent className="p-6 flex items-center justify-between">
-        <div>
-          <p className="text-sm text-slate-500">
-            {title}
-          </p>
-
-          <h2 className="text-3xl font-bold mt-2">
-            {value}
-          </h2>
-        </div>
-
-        <div
-          className={`w-14 h-14 rounded-xl ${color} text-white flex items-center justify-center`}
-        >
-          <Icon size={28} />
-        </div>
-      </CardContent>
-    </Card>
-  );
+export default function StatCard({ title, value, icon: Icon, color = "bg-stone-950", detail = "Live store data" }: Props) {
+  return <article className="group rounded-2xl border border-stone-200 bg-white p-5 shadow-sm transition duration-300 hover:-translate-y-0.5 hover:shadow-lg dark:border-white/10 dark:bg-stone-950"><div className="flex items-start justify-between"><div><p className="text-sm font-semibold text-stone-500">{title}</p><p className="mt-3 text-3xl font-black tracking-[-.04em] text-stone-950 dark:text-white">{value}</p></div><div className={`rounded-2xl p-3 text-white ${color}`}><Icon size={21} /></div></div><p className="mt-5 text-xs font-medium text-stone-400">{detail}</p></article>;
 }

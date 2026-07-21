@@ -1,71 +1,15 @@
-"use client";
-
-import {
-  Package,
-  DollarSign,
-  Users,
-  Truck,
-} from "lucide-react";
-
+import Link from "next/link";
+import { ArrowUpRight, DollarSign, Package, ShoppingBag, Truck, Users } from "lucide-react";
 import StatCard from "@/components/admin/stat-card";
-import { useDashboard } from "@/hooks/use-dashboard";
+import StatusBadge from "@/components/shared/StatusBadge";
+import { createAdminClient } from "@/lib/supabase/admin";
 
-export default function Dashboard() {
-  const { stats, loading } = useDashboard();
-
-  if (loading)
-    return (
-      <div className="text-lg">
-        Loading...
-      </div>
-    );
-
-  return (
-    <div className="space-y-8">
-
-      <div>
-
-        <h1 className="text-3xl font-bold">
-          Dashboard
-        </h1>
-
-        <p className="text-slate-500">
-          Welcome back
-        </p>
-
-      </div>
-
-      <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-4 gap-6">
-
-        <StatCard
-          title="Orders"
-          value={stats.orders}
-          icon={Package}
-        />
-
-        <StatCard
-          title="Revenue"
-          value={`${stats.revenue} DA`}
-          icon={DollarSign}
-          color="bg-emerald-600"
-        />
-
-        <StatCard
-          title="Customers"
-          value={stats.customers}
-          icon={Users}
-          color="bg-blue-600"
-        />
-
-        <StatCard
-          title="Delivered"
-          value={stats.delivered}
-          icon={Truck}
-          color="bg-orange-500"
-        />
-
-      </div>
-
-    </div>
-  );
+export default async function Dashboard() {
+  const supabase = createAdminClient();
+  const [{ count: orders }, { data: revenueData }, { count: customers }, { count: delivered }, { data: recentOrders }, { data: products }] = await Promise.all([
+    supabase.from("orders").select("*", { count: "exact", head: true }), supabase.from("orders").select("total_price"), supabase.from("orders").select("phone", { count: "exact", head: true }), supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "تم التسليم"), supabase.from("orders").select("id, customer_name, total_price, status, created_at").order("created_at", { ascending: false }).limit(5), supabase.from("products").select("id, name, stock").order("stock", { ascending: true }).limit(5),
+  ]);
+  const revenue = revenueData?.reduce((sum, item) => sum + (item.total_price ?? 0), 0) ?? 0;
+  const lowStock = products?.filter((product) => product.stock <= 5).length ?? 0;
+  return <div className="space-y-8"><div className="flex flex-wrap items-end justify-between gap-4"><div><p className="text-sm font-semibold uppercase tracking-[.16em] text-amber-800">Store overview</p><h1 className="mt-2 text-4xl font-black tracking-[-.05em] text-stone-950 dark:text-white">Good morning, Othman.</h1><p className="mt-2 text-sm text-stone-500">Here’s what’s happening with ORVEN LUX today.</p></div><Link href="/admin/products/new" className="rounded-xl bg-stone-950 px-5 py-3 text-sm font-semibold text-white transition hover:bg-stone-700 dark:bg-white dark:text-stone-950">Add a product</Link></div><div className="grid gap-4 sm:grid-cols-2 xl:grid-cols-4"><StatCard title="Total orders" value={orders ?? 0} icon={ShoppingBag} detail="All customer orders" /><StatCard title="Revenue" value={`${revenue.toLocaleString()} DA`} icon={DollarSign} color="bg-emerald-700" detail="Lifetime order value" /><StatCard title="Customers" value={customers ?? 0} icon={Users} color="bg-blue-700" detail="Customer records" /><StatCard title="Delivered" value={delivered ?? 0} icon={Truck} color="bg-amber-700" detail="Completed deliveries" /></div><div className="grid gap-6 xl:grid-cols-[1.35fr_.65fr]"><section className="rounded-2xl border border-stone-200 bg-white p-6 shadow-sm dark:border-white/10 dark:bg-stone-950"><div className="flex items-center justify-between"><div><h2 className="text-lg font-bold text-stone-950 dark:text-white">Recent orders</h2><p className="mt-1 text-sm text-stone-500">Your latest customer activity.</p></div><Link href="/admin/orders" className="inline-flex items-center gap-1 text-sm font-semibold text-stone-700 hover:text-stone-950 dark:text-stone-300">View all <ArrowUpRight size={16} /></Link></div><div className="mt-6 divide-y divide-stone-100 dark:divide-white/10">{recentOrders?.length ? recentOrders.map((order) => <Link key={order.id} href={`/admin/orders/${order.id}`} className="flex items-center justify-between gap-4 py-4 transition hover:bg-stone-50 dark:hover:bg-white/5"><div><p className="font-semibold text-stone-950 dark:text-white">{order.customer_name}</p><p className="mt-1 text-xs text-stone-500">Order #{order.id} · {new Date(order.created_at).toLocaleDateString()}</p></div><div className="flex items-center gap-4"><span className="hidden text-sm font-semibold text-stone-950 sm:block dark:text-white">{order.total_price} DA</span><StatusBadge status={order.status} /></div></Link>) : <p className="py-8 text-sm text-stone-500">No orders yet.</p>}</div></section><section className="rounded-2xl bg-stone-950 p-6 text-white dark:bg-[#161616]"><div className="flex items-center justify-between"><div><p className="text-sm font-semibold text-stone-300">Inventory attention</p><h2 className="mt-2 text-4xl font-black tracking-[-.05em]">{lowStock}</h2><p className="mt-1 text-sm text-stone-400">products with low stock</p></div><div className="rounded-2xl bg-white/10 p-3"><Package size={22} /></div></div><div className="mt-8 space-y-3">{products?.map((product) => <div key={product.id} className="rounded-xl bg-white/5 p-3"><div className="flex justify-between gap-3 text-sm"><span className="truncate font-medium">{product.name}</span><span className={product.stock <= 5 ? "font-bold text-amber-300" : "text-stone-300"}>{product.stock} left</span></div><div className="mt-3 h-1.5 overflow-hidden rounded-full bg-white/10"><div className={`h-full rounded-full ${product.stock <= 5 ? "bg-amber-300" : "bg-emerald-400"}`} style={{ width: `${Math.min(100, Math.max(8, product.stock))}%` }} /></div></div>)}</div></section></div></div>;
 }
