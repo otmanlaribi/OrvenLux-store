@@ -39,14 +39,24 @@ export async function requireAdmin(request: Request): Promise<AuthResult> {
 
 export async function getAdminUser() {
   const supabase = await createClient();
-  const { data: { user } } = await supabase.auth.getUser();
-  if (!user) return null;
-  const { data } = await createAdminClient()
-    .from("admin_users")
-    .select("user_id")
-    .eq("user_id", user.id)
-    .maybeSingle();
-  return data ? user : null;
+  const {
+  data: { user },
+} = await supabase.auth.getUser();
+
+console.log("USER =", user);
+
+if (!user) return null;
+
+const { data, error } = await createAdminClient()
+  .from("admin_users")
+  .select("*")
+  .eq("user_id", user.id)
+  .maybeSingle();
+
+console.log("ADMIN =", data);
+console.log("ERROR =", error);
+
+return data ? user : null;
 }
 
 export function isSameOrigin(request: Request) {
@@ -107,7 +117,11 @@ export async function isRateLimited(scope: string, request: Request, max: number
 
 export async function verifyCaptcha(token: string | undefined, remoteIp: string | undefined) {
   const secret = process.env.CAPTCHA_SECRET_KEY;
-  if (!secret) return process.env.NODE_ENV !== "production";
+  if (!secret) {
+    // Fail closed in production: a missing CAPTCHA secret must reject verification.
+    if (process.env.NODE_ENV === "production") return false;
+    return true;
+  }
   if (!token) return false;
   const response = await fetch("https://challenges.cloudflare.com/turnstile/v0/siteverify", {
     method: "POST",

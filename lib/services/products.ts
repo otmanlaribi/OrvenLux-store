@@ -17,6 +17,31 @@ export async function getProducts(): Promise<Product[]> {
   return data as Product[];
 }
 
+const DEFAULT_PAGE_SIZE = 20;
+
+export async function getProductsPaginated(options?: { page?: number; pageSize?: number }): Promise<{ products: Product[]; page: number; pageSize: number; hasMore: boolean }> {
+  const supabase = createClient();
+  const page = Math.max(0, options?.page ?? 0);
+  const pageSize = Math.max(1, options?.pageSize ?? DEFAULT_PAGE_SIZE);
+  const from = page * pageSize;
+  const to = from + pageSize;
+
+  const { data, error } = await supabase
+    .from("products")
+    .select("*")
+    .order("id", { ascending: false })
+    .range(from, to);
+
+  if (error) {
+    console.error(error);
+    return { products: [], page, pageSize, hasMore: false };
+  }
+
+  const products = (data ?? []).slice(0, pageSize) as Product[];
+  const hasMore = (data ?? []).length > pageSize;
+  return { products, page, pageSize, hasMore };
+}
+
 export async function getProductById(id: number) {
   const supabase = createClient();
 

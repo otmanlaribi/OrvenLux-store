@@ -1,6 +1,21 @@
 import type { Metadata } from "next";
+import { Fraunces, Inter } from "next/font/google";
 import "./globals.css";
 import { Toaster } from "sonner";
+
+// Both are variable fonts: the full weight axis is self-hosted, covering
+// Fraunces 300-500 (display) and Inter 400-600 (text) as used by the design system.
+const inter = Inter({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-inter",
+});
+
+const fraunces = Fraunces({
+  subsets: ["latin"],
+  display: "swap",
+  variable: "--font-fraunces",
+});
 
 export const metadata: Metadata = {
   metadataBase: new URL(process.env.NEXT_PUBLIC_SITE_URL ?? "https://orven-lux.example"),
@@ -20,9 +35,9 @@ export default function RootLayout({
   return (
     <html
       lang="en"
-      className="h-full antialiased font-sans"
+      className={`${inter.variable} ${fraunces.variable} h-full antialiased font-sans`}
     >
-      <body>
+      <body className="bg-background text-foreground">
   {children}
   <Toaster richColors position="top-right" />
 </body>

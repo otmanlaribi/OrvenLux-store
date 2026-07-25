@@ -1,5 +1,5 @@
 import OrdersTable from "@/components/orders/OrdersTable";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 const PAGE_SIZE = 50;
 
@@ -7,7 +7,8 @@ export default async function OrdersPage({ searchParams }: { searchParams: Promi
   const rawPage = Number((await searchParams).page ?? "1");
   const page = Number.isSafeInteger(rawPage) && rawPage > 0 ? rawPage : 1;
   const from = (page - 1) * PAGE_SIZE;
-  const { data: orders, count, error } = await createAdminClient()
+  const supabase = await createClient();
+  const { data: orders, count, error } = await supabase
     .from("orders")
     .select("id, customer_name, phone, total_price, status, tracking_number, created_at", { count: "exact" })
     .order("created_at", { ascending: false })

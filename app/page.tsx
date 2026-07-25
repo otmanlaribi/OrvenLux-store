@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { ArrowRight, Check, Sparkles, Truck } from "lucide-react";
-import { supabase } from "@/lib/supabase";
+import { supabase } from "@/lib/supabase/client";
 import ProductCard from "@/components/ProductCard";
 import StorefrontNav from "@/components/storefront/StorefrontNav";
 import StorefrontFooter from "@/components/storefront/StorefrontFooter";

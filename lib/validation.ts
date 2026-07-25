@@ -37,12 +37,6 @@ export const orderSchema = z.object({
 
 export const ecotrackSchema = z.object({ orderId: z.number().int().positive() }).strict();
 
-const legacyOrderStatusSchema = z.object({
-  status: z.enum(["Ø¬Ø¯ÙŠØ¯", "Ù‚ÙŠØ¯ Ø§Ù„Ù…Ø¹Ø§Ù„Ø¬Ø©", "ØªÙ… Ø§Ù„Ø´Ø­Ù†", "ØªÙ… Ø§Ù„ØªØ³Ù„Ù…", "Ù…Ù„ØºÙŠ", "EnvoyÃ©"]),
-}).strict();
-
-void legacyOrderStatusSchema;
-
 export const orderStatusSchema = z.object({
   status: z.enum(["\u062c\u062f\u064a\u062f", "\u0642\u064a\u062f \u0627\u0644\u0645\u0639\u0627\u0644\u062c\u0629", "\u062a\u0645 \u0627\u0644\u0634\u062d\u0646", "\u062a\u0645 \u0627\u0644\u062a\u0633\u0644\u064a\u0645", "\u0645\u0644\u063a\u064a"]),
 }).strict();

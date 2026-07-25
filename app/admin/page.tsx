@@ -2,10 +2,10 @@ import Link from "next/link";
 import { ArrowUpRight, DollarSign, Package, ShoppingBag, Truck, Users } from "lucide-react";
 import StatCard from "@/components/admin/stat-card";
 import StatusBadge from "@/components/shared/StatusBadge";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { createClient } from "@/lib/supabase/server";
 
 export default async function Dashboard() {
-  const supabase = createAdminClient();
+  const supabase = await createClient();
   const [{ count: orders }, { data: revenueData }, { count: customers }, { count: delivered }, { data: recentOrders }, { data: products }] = await Promise.all([
     supabase.from("orders").select("*", { count: "exact", head: true }), supabase.from("orders").select("total_price"), supabase.from("orders").select("phone", { count: "exact", head: true }), supabase.from("orders").select("*", { count: "exact", head: true }).eq("status", "تم التسليم"), supabase.from("orders").select("id, customer_name, total_price, status, created_at").order("created_at", { ascending: false }).limit(5), supabase.from("products").select("id, name, stock").order("stock", { ascending: true }).limit(5),
   ]);
