@@ -9,31 +9,45 @@ import { deleteProduct } from "@/lib/services/products";
 
 type Props = {
   id: number;
+  onDeleted: (id: number) => void;
 };
 
-export default function DeleteProductDialog({ id }: Props) {
+export default function DeleteProductDialog({
+  id,
+  onDeleted,
+}: Props) {
   const router = useRouter();
-  const [loading, setLoading] = useState(false);
+
+  const [loading, setLoading] =
+    useState(false);
 
   async function handleDelete() {
     const confirmed = window.confirm(
       "Are you sure you want to delete this product?"
     );
 
-    if (!confirmed) return;
+    if (!confirmed) {
+      return;
+    }
 
     setLoading(true);
 
     try {
       await deleteProduct(id);
 
-      toast.success("Product deleted successfully");
+      onDeleted(id);
+
+      toast.success(
+        "Product deleted successfully"
+      );
 
       router.refresh();
     } catch (error) {
       console.error(error);
 
-      toast.error("Failed to delete product");
+      toast.error(
+        "Failed to delete product"
+      );
     } finally {
       setLoading(false);
     }
@@ -41,9 +55,12 @@ export default function DeleteProductDialog({ id }: Props) {
 
   return (
     <button
+      type="button"
       onClick={handleDelete}
       disabled={loading}
-      className="rounded-lg border border-red-200 p-2 text-red-600 hover:bg-red-50 disabled:opacity-50"
+      className="rounded-lg border border-red-200 p-2 text-red-600 transition hover:bg-red-50 disabled:cursor-not-allowed disabled:opacity-50"
+      title="Delete Product"
+      aria-label="Delete Product"
     >
       <Trash2 className="h-5 w-5" />
     </button>

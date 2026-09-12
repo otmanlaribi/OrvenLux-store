@@ -1,141 +1,263 @@
-import Link from "next/link";
-import Image from "next/image";
-import { Pencil } from "lucide-react";
+import ProductRow from "./ProductRow";
 
 import type { Product } from "@/types/database";
-import DeleteProductDialog from "./DeleteProductDialog";
 
-type Props = {
+type ProductsTableProps = {
   products: Product[];
 };
 
 export default function ProductsTable({
   products,
-}: Props) {
+}: ProductsTableProps) {
   if (products.length === 0) {
     return (
-      <div className="rounded-xl border bg-white py-16 text-center">
-        <h3 className="text-xl font-semibold">
-          No products found
-        </h3>
-
-        <p className="mt-2 text-slate-500">
-          Create your first product.
-        </p>
-
-        <Link
-          href="/admin/products/new"
-          className="mt-6 inline-flex rounded-lg bg-black px-5 py-3 text-white transition hover:bg-zinc-800"
+      <div
+        className="
+          overflow-hidden
+          rounded-[1.75rem]
+          border
+          border-white/[0.08]
+          bg-[#151513]
+          shadow-[0_30px_90px_rgba(24,20,14,0.14)]
+        "
+      >
+        <div
+          className="
+            relative
+            flex
+            min-h-[300px]
+            flex-col
+            items-center
+            justify-center
+            overflow-hidden
+            px-6
+            py-16
+            text-center
+          "
         >
-          Add Product
-        </Link>
+          {/* Ambient light */}
+          <div
+            aria-hidden="true"
+            className="
+              pointer-events-none
+              absolute
+              left-1/2
+              top-1/2
+              h-52
+              w-52
+              -translate-x-1/2
+              -translate-y-1/2
+              rounded-full
+              bg-[#C9A227]/[0.05]
+              blur-[80px]
+            "
+          />
+
+          {/* Fine texture */}
+          <div
+            aria-hidden="true"
+            className="
+              pointer-events-none
+              absolute
+              inset-0
+              opacity-[0.025]
+              [background-image:radial-gradient(rgba(255,255,255,0.8)_0.7px,transparent_0.7px)]
+              [background-size:8px_8px]
+            "
+          />
+
+          <div
+            className="
+              relative
+              mb-5
+              flex
+              h-16
+              w-16
+              items-center
+              justify-center
+              rounded-2xl
+              border
+              border-[#C9A227]/20
+              bg-[#C9A227]/[0.06]
+              text-[#C9A227]
+              shadow-[0_0_35px_rgba(201,162,39,0.05)]
+            "
+          >
+            <span className="text-xl font-light">
+              ∅
+            </span>
+          </div>
+
+          <p className="relative text-sm font-semibold text-[#F1EDE4]">
+            لا توجد منتجات
+          </p>
+
+          <p className="relative mt-2 max-w-sm text-xs leading-6 text-white/35">
+            لم يتم العثور على منتجات مطابقة
+            للبحث أو الفلاتر الحالية.
+          </p>
+        </div>
       </div>
     );
   }
 
   return (
-    <div className="overflow-hidden rounded-xl border bg-white shadow-sm">
+    <div
+      className="
+        group/table
+        overflow-hidden
+        rounded-[1.75rem]
+        border
+        border-white/[0.08]
+        bg-[#151513]
+        shadow-[0_30px_90px_rgba(24,20,14,0.14)]
+      "
+    >
+      {/* =====================================================
+          DESKTOP TABLE
+      ===================================================== */}
 
-      <table className="min-w-full">
+      <div className="hidden md:block">
+        <div className="overflow-x-auto">
+          <table
+            className="
+              w-full
+              border-separate
+              border-spacing-0
+              text-right
+              [&_tbody_tr]:!bg-[#171715]
+              [&_tbody_tr]:!text-[#EAE5DB]
+              [&_tbody_td]:!border-white/[0.055]
+              [&_tbody_td]:!bg-[#171715]
+              [&_tbody_tr:hover_td]:!bg-[#1D1C19]
+              [&_tbody_tr:hover_td]:transition-colors
+              [&_tbody_tr:hover_td]:duration-300
+            "
+          >
+            {/* =================================================
+                HEADER
+            ================================================= */}
 
-        <thead className="bg-slate-100">
-          <tr>
-            <th className="p-4 text-left">Image</th>
-            <th className="p-4 text-left">Product</th>
-            <th className="p-4 text-left">Price</th>
-            <th className="p-4 text-left">Stock</th>
-            <th className="p-4 text-left">Status</th>
-            <th className="p-4 text-center">Actions</th>
-          </tr>
-        </thead>
+            <thead>
+              <tr
+                className="
+                  bg-[#0B0B0A]
+                  text-white
+                  shadow-[inset_0_-1px_0_rgba(255,255,255,0.06)]
+                "
+              >
+                <th className="px-5 py-5 text-[8px] font-black uppercase tracking-[0.18em] text-white/45">
+                  PRODUCT
+                </th>
 
-        <tbody>
+                <th className="px-5 py-5 text-[8px] font-black uppercase tracking-[0.18em] text-white/45">
+                  PRICE
+                </th>
 
-          {products.map((product) => (
+                <th className="px-5 py-5 text-[8px] font-black uppercase tracking-[0.18em] text-white/45">
+                  INVENTORY
+                </th>
 
-            <tr
-              key={product.id}
-              className="border-t transition hover:bg-slate-50"
+                <th className="px-5 py-5 text-[8px] font-black uppercase tracking-[0.18em] text-white/45">
+                  STATUS
+                </th>
+
+                <th className="px-5 py-5 text-left text-[8px] font-black uppercase tracking-[0.18em] text-white/45">
+                  ACTIONS
+                </th>
+              </tr>
+            </thead>
+
+            {/* =================================================
+                BODY
+            ================================================= */}
+
+            <tbody
+              className="
+                divide-y
+                divide-white/[0.055]
+                bg-[#171715]
+              "
             >
+              {products.map((product) => (
+                <ProductRow
+                  key={product.id}
+                  product={product}
+                />
+              ))}
+            </tbody>
+          </table>
+        </div>
 
-              <td className="p-4">
+        {/* Bottom signature */}
+        <div className="flex items-center justify-between border-t border-white/[0.055] bg-[#121210] px-5 py-3.5">
+          <div className="flex items-center gap-2">
+            <span className="h-1.5 w-1.5 rounded-full bg-[#C9A227] shadow-[0_0_10px_rgba(201,162,39,0.45)]" />
 
-                {product.image ? (
+            <span className="text-[7px] font-black uppercase tracking-[0.22em] text-white/25">
+              ORVEN LUX / COLLECTION
+            </span>
+          </div>
 
-                  <Image
-                    src={product.image}
-                    alt={product.name}
-                    width={56}
-                    height={56}
-                    className="rounded-lg object-cover"
-                  />
+          <span className="text-[7px] font-black uppercase tracking-[0.2em] text-white/15">
+            LIVE INVENTORY
+          </span>
+        </div>
+      </div>
 
-                ) : (
+      {/* =====================================================
+          MOBILE CATALOG
+      ===================================================== */}
 
-                  <div className="flex h-14 w-14 items-center justify-center rounded-lg bg-slate-100 text-xs text-slate-400">
-                    No Image
-                  </div>
+      <div
+        className="
+          grid
+          gap-3
+          bg-[#11110F]
+          p-3
+          md:hidden
+        "
+      >
+        {products.map((product) => (
+          <div
+            key={product.id}
+            className="
+              relative
+              overflow-hidden
+              rounded-2xl
+              border
+              border-white/[0.07]
+              bg-[#181815]
+              transition-all
+              duration-300
+              hover:border-[#C9A227]/20
+              hover:bg-[#1C1B18]
+              hover:shadow-[0_14px_35px_rgba(0,0,0,0.18)]
+            "
+          >
+            <ProductRow
+              product={product}
+              mobile
+            />
+          </div>
+        ))}
+      </div>
 
-                )}
+      {/* =====================================================
+          TABLE FOOTER
+      ===================================================== */}
 
-              </td>
+      <div className="border-t border-white/[0.06] bg-[#0F0F0E] px-4 py-3 md:hidden">
+        <div className="flex items-center justify-center gap-3">
+          <span className="h-px w-8 bg-[#C9A227]/40" />
 
-              <td className="p-4 font-semibold">
-                {product.name}
-              </td>
+          <span className="text-[7px] font-black uppercase tracking-[0.3em] text-white/25">
+            ORVEN LUX
+          </span>
 
-              <td className="p-4">
-                {product.price} DA
-              </td>
-
-              <td className="p-4">
-                {product.stock}
-              </td>
-
-              <td className="p-4">
-
-                {product.active ? (
-
-                  <span className="rounded-full bg-green-100 px-3 py-1 text-sm font-medium text-green-700">
-                    Active
-                  </span>
-
-                ) : (
-
-                  <span className="rounded-full bg-red-100 px-3 py-1 text-sm font-medium text-red-700">
-                    Disabled
-                  </span>
-
-                )}
-
-              </td>
-
-              <td className="p-4">
-
-                <div className="flex justify-center gap-2">
-
-                  <Link
-                    href={`/admin/products/${product.id}`}
-                    className="rounded-lg border p-2 transition hover:bg-slate-100"
-                    title="Edit Product"
-                  >
-                    <Pencil size={18} />
-                  </Link>
-
-                  <DeleteProductDialog id={product.id} />
-
-                </div>
-
-              </td>
-
-            </tr>
-
-          ))}
-
-        </tbody>
-
-      </table>
-
+          <span className="h-px w-8 bg-[#C9A227]/40" />
+        </div>
+      </div>
     </div>
   );
 }

@@ -28,6 +28,20 @@ export type Order = {
   created_at: string;
 };
 
+export type ProductImage = {
+  id: number;
+
+  product_id: number;
+
+  image: string;
+
+  is_primary: boolean;
+
+  sort_order: number;
+
+  created_at: string;
+};
+
 export type Product = {
   id: number;
 
@@ -44,6 +58,11 @@ export type Product = {
   active: boolean;
 
   created_at: string;
+
+  /**
+   * معرض صور المنتج
+   */
+  images?: ProductImage[];
 };
 
 export type ShippingPrice = {

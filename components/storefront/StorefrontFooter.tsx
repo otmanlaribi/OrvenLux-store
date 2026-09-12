@@ -1,5 +1,52 @@
-import Link from "next/link";
+import * as React from "react"
+import Link from "next/link"
 
 export default function StorefrontFooter() {
-  return <footer id="delivery" className="mt-24 bg-stone-950 text-stone-300"><div className="mx-auto grid max-w-7xl gap-10 px-5 py-16 lg:grid-cols-[1.4fr_1fr_1fr] lg:px-8"><div><Link href="/" className="text-xl font-black tracking-[0.22em] text-white">ORVEN LUX</Link><p className="mt-5 max-w-sm text-sm leading-6 text-stone-400">Thoughtfully selected pieces for an elevated everyday. Order online with delivery across Algeria.</p></div><div><p className="text-sm font-semibold text-white">Shop</p><div className="mt-4 flex flex-col gap-3 text-sm"><a href="#collection">All products</a><a href="#story">Our story</a></div></div><div><p className="text-sm font-semibold text-white">Delivery support</p><p className="mt-4 text-sm leading-6 text-stone-400">Choose home delivery or a delivery office at checkout. Your final price is always shown before you confirm.</p></div></div><div className="border-t border-white/10 px-5 py-5 text-center text-xs text-stone-500">© {new Date().getFullYear()} ORVEN LUX. All rights reserved.</div></footer>;
+  const currentYear = new Date().getFullYear()
+
+  return (
+    <footer className="bg-zinc-950 text-zinc-50 border-t border-[#D4AF37]/50 mt-20">
+      <div className="mx-auto max-w-7xl px-6 py-12 md:px-12">
+        {/* 3 Columns Layout */}
+        <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
+
+          {/* Column 1: Brand */}
+          <div className="flex flex-col gap-4">
+            <span className="font-serif text-2xl font-semibold tracking-widest">
+              ORVENLUX
+            </span>
+            <p className="text-sm text-zinc-400 leading-relaxed max-w-xs">
+              Elegance delivered to your doorstep. Proudly serving all 58 wilayas with uncompromising quality.
+            </p>
+          </div>
+
+          {/* Column 2: Links */}
+          <div className="flex flex-col gap-4">
+            <h3 className="font-semibold uppercase tracking-wider text-sm text-zinc-300">Shop</h3>
+            <nav className="flex flex-col gap-3 text-sm text-zinc-400">
+              <Link href="/collections" className="hover:text-zinc-50 transition-colors w-fit">Collections</Link>
+              <Link href="/best-sellers" className="hover:text-zinc-50 transition-colors w-fit">Best Sellers</Link>
+              <Link href="/new-arrivals" className="hover:text-zinc-50 transition-colors w-fit">New Arrivals</Link>
+            </nav>
+          </div>
+
+          {/* Column 3: Support */}
+          <div className="flex flex-col gap-4">
+            <h3 className="font-semibold uppercase tracking-wider text-sm text-zinc-300">Support</h3>
+            <nav className="flex flex-col gap-3 text-sm text-zinc-400">
+              <Link href="/contact" className="hover:text-zinc-50 transition-colors w-fit">Contact Us</Link>
+              <Link href="/shipping" className="hover:text-zinc-50 transition-colors w-fit">Shipping Policy</Link>
+              <Link href="/returns" className="hover:text-zinc-50 transition-colors w-fit">Returns & Exchanges</Link>
+            </nav>
+          </div>
+        </div>
+
+        {/* 12px Legal Line */}
+        <div className="mt-16 flex flex-col items-center justify-between border-t border-zinc-800 pt-8 text-[12px] text-zinc-500 md:flex-row">
+          <p>© {currentYear} OrvenLux. All rights reserved.</p>
+          <p className="mt-2 md:mt-0">Built with precision in Algeria.</p>
+        </div>
+      </div>
+    </footer>
+  )
 }
