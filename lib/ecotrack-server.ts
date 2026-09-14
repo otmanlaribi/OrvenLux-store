@@ -2,8 +2,7 @@ import "server-only";
 
 import { createAdminClient } from "@/lib/supabase/admin";
 
-type EcotrackResponse =
-  Record<string, unknown>;
+type EcotrackResponse = Record<string, unknown>;
 
 const ECOTRACK_API_URL =
   "https://platform.dhd-dz.com/api/v1/create/order";
@@ -12,35 +11,19 @@ const ECOTRACK_API_URL =
    TEXT HELPERS
 ========================================================= */
 
-function normalizeText(
-  value: string,
-) {
+function normalizeText(value: string) {
   return value
     .trim()
     .toLowerCase()
     .normalize("NFD")
-    .replace(
-      /[\u0300-\u036f]/g,
-      "",
-    )
-    .replace(
-      /[’'`]/g,
-      "",
-    )
-    .replace(
-      /[-_]/g,
-      " ",
-    )
-    .replace(
-      /\s+/g,
-      " ",
-    )
+    .replace(/[\u0300-\u036f]/g, "")
+    .replace(/[’'`]/g, "")
+    .replace(/[-_]/g, " ")
+    .replace(/\s+/g, " ")
     .trim();
 }
 
-function getErrorMessage(
-  error: unknown,
-) {
+function getErrorMessage(error: unknown) {
   if (error instanceof Error) {
     return error.message;
   }
@@ -48,9 +31,7 @@ function getErrorMessage(
   return "Courier dispatch failed";
 }
 
-function getProductName(
-  products: unknown,
-) {
+function getProductName(products: unknown) {
   if (Array.isArray(products)) {
     const first = products[0];
 
@@ -59,12 +40,9 @@ function getProductName(
       typeof first === "object" &&
       "name" in first
     ) {
-      const name =
-        first.name;
+      const name = first.name;
 
-      return name == null
-        ? ""
-        : String(name);
+      return name == null ? "" : String(name);
     }
 
     return "";
@@ -75,12 +53,9 @@ function getProductName(
     typeof products === "object" &&
     "name" in products
   ) {
-    const name =
-      products.name;
+    const name = products.name;
 
-    return name == null
-      ? ""
-      : String(name);
+    return name == null ? "" : String(name);
   }
 
   return "";
@@ -90,28 +65,18 @@ function getProductName(
    SAFE VALIDATION
 ========================================================= */
 
-function isValidOrderId(
-  value: number,
-) {
-  return (
-    Number.isSafeInteger(value) &&
-    value > 0
-  );
+function isValidOrderId(value: number) {
+  return Number.isSafeInteger(value) && value > 0;
 }
 
-function clampRetryAttempts(
-  value: number,
-) {
+function clampRetryAttempts(value: number) {
   if (!Number.isFinite(value)) {
     return 3;
   }
 
   return Math.max(
     1,
-    Math.min(
-      5,
-      Math.floor(value),
-    ),
+    Math.min(5, Math.floor(value)),
   );
 }
 
@@ -120,14 +85,11 @@ function clampRetryAttempts(
 ========================================================= */
 
 async function findEcotrackCommune(
-  supabase: ReturnType<
-    typeof createAdminClient
-  >,
+  supabase: ReturnType<typeof createAdminClient>,
   commune: string,
   wilaya: unknown,
 ) {
-  const originalCommune =
-    commune.trim();
+  const originalCommune = commune.trim();
 
   if (!originalCommune) {
     return "";
@@ -140,39 +102,31 @@ async function findEcotrackCommune(
   const {
     data: exactCity,
     error: exactCityError,
-  } =
-    await supabase
-      .from("algeria_cities")
-      .select(
-        "commune_name, commune_name_ascii",
-      )
-      .eq(
-        "commune_name",
-        originalCommune,
-      )
-      .limit(1)
-      .maybeSingle();
+  } = await supabase
+    .from("algeria_cities")
+    .select(
+      "commune_name, commune_name_ascii",
+    )
+    .eq(
+      "commune_name",
+      originalCommune,
+    )
+    .limit(1)
+    .maybeSingle();
 
   if (exactCityError) {
     console.error(
       "ECOTRACK EXACT COMMUNE LOOKUP ERROR:",
       {
-        commune:
-          originalCommune,
-        message:
-          exactCityError.message,
-        code:
-          exactCityError.code,
+        commune: originalCommune,
+        message: exactCityError.message,
+        code: exactCityError.code,
       },
     );
   }
 
-  if (
-    exactCity?.commune_name_ascii
-  ) {
-    return exactCity
-      .commune_name_ascii
-      .trim();
+  if (exactCity?.commune_name_ascii) {
+    return exactCity.commune_name_ascii.trim();
   }
 
   /* -------------------------------------------------------
@@ -183,42 +137,33 @@ async function findEcotrackCommune(
     return originalCommune;
   }
 
-  const wilayaCode =
-    Number(wilaya);
+  const wilayaCode = Number(wilaya);
 
-  if (
-    !Number.isInteger(
-      wilayaCode,
-    )
-  ) {
+  if (!Number.isInteger(wilayaCode)) {
     return originalCommune;
   }
 
   const {
     data: wilayaCities,
     error: citiesError,
-  } =
-    await supabase
-      .from("algeria_cities")
-      .select(
-        "commune_name, commune_name_ascii",
-      )
-      .eq(
-        "wilaya_code",
-        wilayaCode,
-      );
+  } = await supabase
+    .from("algeria_cities")
+    .select(
+      "commune_name, commune_name_ascii",
+    )
+    .eq(
+      "wilaya_code",
+      wilayaCode,
+    );
 
   if (citiesError) {
     console.error(
       "ECOTRACK WILAYA COMMUNE LOOKUP ERROR:",
       {
         wilayaCode,
-        commune:
-          originalCommune,
-        message:
-          citiesError.message,
-        code:
-          citiesError.code,
+        commune: originalCommune,
+        message: citiesError.message,
+        code: citiesError.code,
       },
     );
 
@@ -226,40 +171,27 @@ async function findEcotrackCommune(
   }
 
   const normalizedOrderCommune =
-    normalizeText(
-      originalCommune,
-    );
+    normalizeText(originalCommune);
 
-  const matchedCity =
-    wilayaCities?.find(
-      (city) => {
-        const databaseName =
-          normalizeText(
-            city.commune_name ??
-              "",
-          );
+  const matchedCity = wilayaCities?.find(
+    (city) => {
+      const databaseName = normalizeText(
+        city.commune_name ?? "",
+      );
 
-        const asciiName =
-          normalizeText(
-            city.commune_name_ascii ??
-              "",
-          );
+      const asciiName = normalizeText(
+        city.commune_name_ascii ?? "",
+      );
 
-        return (
-          databaseName ===
-            normalizedOrderCommune ||
-          asciiName ===
-            normalizedOrderCommune
-        );
-      },
-    );
+      return (
+        databaseName === normalizedOrderCommune ||
+        asciiName === normalizedOrderCommune
+      );
+    },
+  );
 
-  if (
-    matchedCity?.commune_name_ascii
-  ) {
-    return matchedCity
-      .commune_name_ascii
-      .trim();
+  if (matchedCity?.commune_name_ascii) {
+    return matchedCity.commune_name_ascii.trim();
   }
 
   return originalCommune;
@@ -270,53 +202,35 @@ async function findEcotrackCommune(
 ========================================================= */
 
 async function markDispatchAsPending(
-  supabase: ReturnType<
-    typeof createAdminClient
-  >,
+  supabase: ReturnType<typeof createAdminClient>,
   orderId: number,
   message: string,
   delaySeconds?: number,
 ) {
-  const payload: Record<
-    string,
-    unknown
-  > = {
-    ecotrack_dispatch_state:
-      "pending",
-
-    ecotrack_error:
-      message,
+  const payload: Record<string, unknown> = {
+    ecotrack_dispatch_state: "pending",
+    ecotrack_error: message,
   };
 
-  if (
-    typeof delaySeconds ===
-    "number"
-  ) {
+  if (typeof delaySeconds === "number") {
     payload.ecotrack_next_attempt_at =
       new Date(
-        Date.now() +
-          delaySeconds * 1000,
+        Date.now() + delaySeconds * 1000,
       ).toISOString();
   }
 
-  const { error } =
-    await supabase
-      .from("orders")
-      .update(payload)
-      .eq(
-        "id",
-        orderId,
-      );
+  const { error } = await supabase
+    .from("orders")
+    .update(payload)
+    .eq("id", orderId);
 
   if (error) {
     console.error(
       "ECOTRACK MARK PENDING ERROR:",
       {
         orderId,
-        message:
-          error.message,
-        code:
-          error.code,
+        message: error.message,
+        code: error.code,
       },
     );
   }
@@ -329,18 +243,11 @@ async function markDispatchAsPending(
 export async function dispatchOrderToEcotrack(
   orderId: number,
 ) {
-  if (
-    !isValidOrderId(
-      orderId,
-    )
-  ) {
-    throw new Error(
-      "Invalid order id",
-    );
+  if (!isValidOrderId(orderId)) {
+    throw new Error("Invalid order id");
   }
 
-  const supabase =
-    createAdminClient();
+  const supabase = createAdminClient();
 
   /* =======================================================
      READ CURRENT STATE
@@ -349,27 +256,21 @@ export async function dispatchOrderToEcotrack(
   const {
     data: currentOrder,
     error: currentOrderError,
-  } =
-    await supabase
-      .from("orders")
-      .select(
-        "id, sent_to_ecotrack, ecotrack_dispatch_state, ecotrack_dispatch_attempts",
-      )
-      .eq(
-        "id",
-        orderId,
-      )
-      .maybeSingle();
+  } = await supabase
+    .from("orders")
+    .select(
+      "id, sent_to_ecotrack, ecotrack_dispatch_state, ecotrack_dispatch_attempts",
+    )
+    .eq("id", orderId)
+    .maybeSingle();
 
   if (currentOrderError) {
     console.error(
       "ECOTRACK CURRENT ORDER LOOKUP ERROR:",
       {
         orderId,
-        message:
-          currentOrderError.message,
-        code:
-          currentOrderError.code,
+        message: currentOrderError.message,
+        code: currentOrderError.code,
       },
     );
 
@@ -379,15 +280,10 @@ export async function dispatchOrderToEcotrack(
   }
 
   if (!currentOrder) {
-    throw new Error(
-      "Order not found",
-    );
+    throw new Error("Order not found");
   }
 
-  if (
-    currentOrder.sent_to_ecotrack ===
-    true
-  ) {
+  if (currentOrder.sent_to_ecotrack === true) {
     return {
       dispatched: false,
       reason:
@@ -399,58 +295,36 @@ export async function dispatchOrderToEcotrack(
      CLAIM ORDER
   ======================================================= */
 
-  let claimQuery =
-    supabase
-      .from("orders")
-      .update({
-        ecotrack_dispatch_state:
-          "processing",
+  let claimQuery = supabase
+    .from("orders")
+    .update({
+      ecotrack_dispatch_state: "processing",
+      ecotrack_last_attempt_at:
+        new Date().toISOString(),
+    })
+    .eq("id", orderId)
+    .eq("sent_to_ecotrack", false);
 
-        ecotrack_last_attempt_at:
-          new Date().toISOString(),
-      })
-      .eq(
-        "id",
-        orderId,
-      )
-      .eq(
-        "sent_to_ecotrack",
-        false,
-      );
-
-  /*
-   * Support:
-   *
-   * pending
-   * NULL
-   *
-   * This preserves compatibility with older orders.
-   */
-
-  claimQuery =
-    claimQuery.or(
-      "ecotrack_dispatch_state.eq.pending,ecotrack_dispatch_state.is.null",
-    );
+  claimQuery = claimQuery.or(
+    "ecotrack_dispatch_state.eq.pending,ecotrack_dispatch_state.is.null",
+  );
 
   const {
     data: claimed,
     error: claimError,
-  } =
-    await claimQuery
-      .select(
-        "id, ecotrack_dispatch_attempts",
-      )
-      .maybeSingle();
+  } = await claimQuery
+    .select(
+      "id, ecotrack_dispatch_attempts",
+    )
+    .maybeSingle();
 
   if (claimError) {
     console.error(
       "ECOTRACK CLAIM ERROR:",
       {
         orderId,
-        message:
-          claimError.message,
-        code:
-          claimError.code,
+        message: claimError.message,
+        code: claimError.code,
       },
     );
 
@@ -462,19 +336,14 @@ export async function dispatchOrderToEcotrack(
   if (!claimed) {
     const {
       data: latestOrder,
-      error:
-        latestOrderError,
-    } =
-      await supabase
-        .from("orders")
-        .select(
-          "id, sent_to_ecotrack, ecotrack_dispatch_state",
-        )
-        .eq(
-          "id",
-          orderId,
-        )
-        .maybeSingle();
+      error: latestOrderError,
+    } = await supabase
+      .from("orders")
+      .select(
+        "id, sent_to_ecotrack, ecotrack_dispatch_state",
+      )
+      .eq("id", orderId)
+      .maybeSingle();
 
     if (latestOrderError) {
       console.error(
@@ -483,15 +352,13 @@ export async function dispatchOrderToEcotrack(
           orderId,
           message:
             latestOrderError.message,
-          code:
-            latestOrderError.code,
+          code: latestOrderError.code,
         },
       );
     }
 
     if (
-      latestOrder?.sent_to_ecotrack ===
-        true ||
+      latestOrder?.sent_to_ecotrack === true ||
       latestOrder?.ecotrack_dispatch_state ===
         "processing"
     ) {
@@ -509,23 +376,17 @@ export async function dispatchOrderToEcotrack(
 
   const attempt =
     Number(
-      claimed.ecotrack_dispatch_attempts ??
-        0,
+      claimed.ecotrack_dispatch_attempts ?? 0,
     ) + 1;
 
-  const {
-    error: attemptError,
-  } =
+  const { error: attemptError } =
     await supabase
       .from("orders")
       .update({
         ecotrack_dispatch_attempts:
           attempt,
       })
-      .eq(
-        "id",
-        orderId,
-      )
+      .eq("id", orderId)
       .eq(
         "ecotrack_dispatch_state",
         "processing",
@@ -537,10 +398,8 @@ export async function dispatchOrderToEcotrack(
       {
         orderId,
         attempt,
-        message:
-          attemptError.message,
-        code:
-          attemptError.code,
+        message: attemptError.message,
+        code: attemptError.code,
       },
     );
   }
@@ -552,31 +411,20 @@ export async function dispatchOrderToEcotrack(
   const {
     data: order,
     error: orderError,
-  } =
-    await supabase
-      .from("orders")
-      .select(
-        "*, products(name)",
-      )
-      .eq(
-        "id",
-        orderId,
-      )
-      .single();
+  } = await supabase
+    .from("orders")
+    .select("*, products(name)")
+    .eq("id", orderId)
+    .single();
 
-  if (
-    orderError ||
-    !order
-  ) {
+  if (orderError || !order) {
     await markDispatchAsPending(
       supabase,
       orderId,
       "Order not found",
     );
 
-    throw new Error(
-      "Order not found",
-    );
+    throw new Error("Order not found");
   }
 
   /* =======================================================
@@ -584,18 +432,15 @@ export async function dispatchOrderToEcotrack(
   ======================================================= */
 
   const isOfficeDelivery =
-    order.delivery_type ===
-    "office";
+    order.delivery_type === "office";
 
   const originalCommune =
-    typeof order.commune ===
-    "string"
+    typeof order.commune === "string"
       ? order.commune.trim()
       : "";
 
   const officeName =
-    typeof order.office_name ===
-    "string"
+    typeof order.office_name === "string"
       ? order.office_name.trim()
       : "";
 
@@ -606,16 +451,17 @@ export async function dispatchOrderToEcotrack(
   /*
    * HOME:
    *   commune required
+   *   address required
    *
    * OFFICE:
+   *   commune required
    *   officeName required
-   *   commune may be empty
+   *
+   * DHD/EcoTrack requires commune even for stop-desk
+   * shipments, so we never intentionally drop commune.
    */
 
-  if (
-    !isOfficeDelivery &&
-    !originalCommune
-  ) {
+  if (!originalCommune) {
     const message =
       "اسم البلدية غير موجود في الطلب";
 
@@ -628,10 +474,7 @@ export async function dispatchOrderToEcotrack(
     throw new Error(message);
   }
 
-  if (
-    isOfficeDelivery &&
-    !officeName
-  ) {
+  if (isOfficeDelivery && !officeName) {
     const message =
       "اسم مكتب التوصيل غير موجود في الطلب";
 
@@ -653,23 +496,21 @@ export async function dispatchOrderToEcotrack(
    *   Customer commune is converted to Ecotrack name.
    *
    * OFFICE:
-   *   Do not require commune.
-   *   DHD receives the office as address + stop_desk=1.
+   *   Customer commune is ALSO converted to Ecotrack name.
+   *   The office remains the address.
+   *
+   * This is required because DHD rejects the shipment
+   * when commune is empty, including stop-desk shipments.
    */
 
   const ecotrackCommune =
-    isOfficeDelivery
-      ? ""
-      : await findEcotrackCommune(
-          supabase,
-          originalCommune,
-          order.wilaya,
-        );
+    await findEcotrackCommune(
+      supabase,
+      originalCommune,
+      order.wilaya,
+    );
 
-  if (
-    !isOfficeDelivery &&
-    !ecotrackCommune
-  ) {
+  if (!ecotrackCommune) {
     const message =
       "تعذر تحديد بلدية التوصيل لإرسال الطلب إلى Ecotrack";
 
@@ -687,18 +528,15 @@ export async function dispatchOrderToEcotrack(
   ======================================================= */
 
   const stopDesk =
-    isOfficeDelivery
-      ? "1"
-      : "0";
+    isOfficeDelivery ? "1" : "0";
 
   /* =======================================================
      PRODUCT
   ======================================================= */
 
-  const productName =
-    getProductName(
-      order.products,
-    );
+  const productName = getProductName(
+    order.products,
+  );
 
   /* =======================================================
      API TOKEN
@@ -725,8 +563,7 @@ export async function dispatchOrderToEcotrack(
   ======================================================= */
 
   const originalAddress =
-    typeof order.address ===
-    "string"
+    typeof order.address === "string"
       ? order.address.trim()
       : "";
 
@@ -762,68 +599,49 @@ export async function dispatchOrderToEcotrack(
      PAYLOAD
   ======================================================= */
 
-  const params =
-    new URLSearchParams({
-      reference:
-        String(order.id),
+  const params = new URLSearchParams({
+    reference: String(order.id),
 
-      nom_client:
-        order.customer_name ??
-        "",
+    nom_client:
+      order.customer_name ?? "",
 
-      telephone:
-        order.phone ??
-        "",
+    telephone:
+      order.phone ?? "",
 
-      adresse:
-        ecotrackAddress,
+    adresse:
+      ecotrackAddress,
 
-      commune:
-        ecotrackCommune,
+    commune:
+      ecotrackCommune,
 
-      code_wilaya:
-        String(
-          order.wilaya ??
-            "",
-        ),
+    code_wilaya:
+      String(order.wilaya ?? ""),
 
-      montant:
-        String(
-          order.total_price ??
-            0,
-        ),
+    montant:
+      String(order.total_price ?? 0),
 
-      remarque:
-        order.note ??
-        "",
+    remarque:
+      order.note ?? "",
 
-      produit:
-        productName,
+    produit:
+      productName,
 
-      stock:
-        "0",
+    stock: "0",
 
-      quantite:
-        String(
-          order.quantity ??
-            1,
-        ),
+    quantite:
+      String(order.quantity ?? 1),
 
-      boutique:
-        "Orven Lux",
+    boutique: "Orven Lux",
 
-      type:
-        "1",
+    type: "1",
 
-      stop_desk:
-        stopDesk,
+    stop_desk:
+      stopDesk,
 
-      weight:
-        "1",
+    weight: "1",
 
-      fragile:
-        "0",
-    });
+    fragile: "0",
+  });
 
   /* =======================================================
      SAFE LOGGING
@@ -832,11 +650,9 @@ export async function dispatchOrderToEcotrack(
   console.log(
     "ECOTRACK DISPATCH:",
     {
-      orderId:
-        order.id,
+      orderId: order.id,
 
-      wilaya:
-        order.wilaya,
+      wilaya: order.wilaya,
 
       deliveryType:
         order.delivery_type,
@@ -844,14 +660,10 @@ export async function dispatchOrderToEcotrack(
       stopDesk,
 
       hasCommune:
-        Boolean(
-          ecotrackCommune,
-        ),
+        Boolean(ecotrackCommune),
 
       hasAddress:
-        Boolean(
-          ecotrackAddress,
-        ),
+        Boolean(ecotrackAddress),
 
       attempt,
     },
@@ -881,35 +693,30 @@ export async function dispatchOrderToEcotrack(
         apiToken,
       )}`;
 
-    const response =
-      await fetch(
-        ecotrackUrl,
-        {
-          method: "POST",
+    const response = await fetch(
+      ecotrackUrl,
+      {
+        method: "POST",
 
-          headers: {
-            Authorization:
-              `Bearer ${apiToken}`,
+        headers: {
+          Authorization:
+            `Bearer ${apiToken}`,
 
-            Accept:
-              "application/json",
+          Accept:
+            "application/json",
 
-            "Content-Type":
-              "application/x-www-form-urlencoded",
-          },
-
-          body:
-            params.toString(),
-
-          cache:
-            "no-store",
-
-          signal:
-            AbortSignal.timeout(
-              10_000,
-            ),
+          "Content-Type":
+            "application/x-www-form-urlencoded",
         },
-      );
+
+        body: params.toString(),
+
+        cache: "no-store",
+
+        signal:
+          AbortSignal.timeout(10_000),
+      },
+    );
 
     const raw =
       await response.text();
@@ -918,18 +725,15 @@ export async function dispatchOrderToEcotrack(
        PARSE RESPONSE
     ==================================================== */
 
-    let result:
-      EcotrackResponse;
+    let result: EcotrackResponse;
 
     try {
-      const parsed:
-        unknown =
+      const parsed: unknown =
         JSON.parse(raw);
 
       result =
         parsed &&
-        typeof parsed ===
-          "object"
+        typeof parsed === "object"
           ? (parsed as EcotrackResponse)
           : {
               raw,
@@ -941,8 +745,7 @@ export async function dispatchOrderToEcotrack(
     }
 
     const apiMessage =
-      typeof result.message ===
-      "string"
+      typeof result.message === "string"
         ? result.message
         : "";
 
@@ -950,10 +753,7 @@ export async function dispatchOrderToEcotrack(
        AUTHENTICATION ERROR
     ==================================================== */
 
-    if (
-      response.status ===
-      401
-    ) {
+    if (response.status === 401) {
       const message =
         "EcoTrack authentication failed (401). The DHD account token is not being accepted.";
 
@@ -965,19 +765,14 @@ export async function dispatchOrderToEcotrack(
           : message,
       );
 
-      throw new Error(
-        message,
-      );
+      throw new Error(message);
     }
 
     /* ===================================================
        FORBIDDEN
     ==================================================== */
 
-    if (
-      response.status ===
-      403
-    ) {
+    if (response.status === 403) {
       const message =
         "EcoTrack rejected the credentials or API permission (403).";
 
@@ -989,9 +784,7 @@ export async function dispatchOrderToEcotrack(
           : message,
       );
 
-      throw new Error(
-        message,
-      );
+      throw new Error(message);
     }
 
     /* ===================================================
@@ -1019,8 +812,7 @@ export async function dispatchOrderToEcotrack(
     ==================================================== */
 
     const trackingNumber =
-      typeof result.tracking ===
-      "string"
+      typeof result.tracking === "string"
         ? result.tracking
         : typeof result.tracking_number ===
             "string"
@@ -1031,8 +823,7 @@ export async function dispatchOrderToEcotrack(
             : null;
 
     const ecotrackReference =
-      typeof result.reference ===
-      "string"
+      typeof result.reference === "string"
         ? result.reference
         : null;
 
@@ -1040,14 +831,11 @@ export async function dispatchOrderToEcotrack(
        UPDATE ORDER AFTER SUCCESS
     ==================================================== */
 
-    const {
-      error: updateError,
-    } =
+    const { error: updateError } =
       await supabase
         .from("orders")
         .update({
-          sent_to_ecotrack:
-            true,
+          sent_to_ecotrack: true,
 
           ecotrack_dispatch_state:
             "sent",
@@ -1070,10 +858,7 @@ export async function dispatchOrderToEcotrack(
           ecotrack_error:
             null,
         })
-        .eq(
-          "id",
-          orderId,
-        );
+        .eq("id", orderId);
 
     if (updateError) {
       /*
@@ -1100,27 +885,21 @@ export async function dispatchOrderToEcotrack(
     console.log(
       "ECOTRACK DISPATCH SUCCESS:",
       {
-        orderId:
-          order.id,
+        orderId: order.id,
 
         hasTracking:
-          Boolean(
-            trackingNumber,
-          ),
+          Boolean(trackingNumber),
       },
     );
 
     return {
-      dispatched:
-        true,
+      dispatched: true,
 
       result,
     };
   } catch (error) {
     const errorMessage =
-      getErrorMessage(
-        error,
-      );
+      getErrorMessage(error);
 
     /*
      * DHD accepted the shipment and only our local
@@ -1159,17 +938,10 @@ export async function dispatchOrderToEcotrack(
    SLEEP
 ========================================================= */
 
-const sleep = (
-  ms: number,
-) =>
-  new Promise<void>(
-    (resolve) => {
-      setTimeout(
-        resolve,
-        ms,
-      );
-    },
-  );
+const sleep = (ms: number) =>
+  new Promise<void>((resolve) => {
+    setTimeout(resolve, ms);
+  });
 
 /* =========================================================
    RETRY
@@ -1179,28 +951,18 @@ export async function retryEcotrackDispatch(
   orderId: number,
   maxAttempts = 3,
 ) {
-  if (
-    !isValidOrderId(
-      orderId,
-    )
-  ) {
-    throw new Error(
-      "Invalid order id",
-    );
+  if (!isValidOrderId(orderId)) {
+    throw new Error("Invalid order id");
   }
 
   const safeMaxAttempts =
-    clampRetryAttempts(
-      maxAttempts,
-    );
+    clampRetryAttempts(maxAttempts);
 
-  let lastError:
-    unknown;
+  let lastError: unknown;
 
   for (
     let attempt = 0;
-    attempt <
-    safeMaxAttempts;
+    attempt < safeMaxAttempts;
     attempt++
   ) {
     try {
@@ -1217,20 +979,17 @@ export async function retryEcotrackDispatch(
         return result;
       }
     } catch (error) {
-      lastError =
-        error;
+      lastError = error;
 
       console.error(
         "ECOTRACK RETRY ERROR:",
         {
           orderId,
-          retry:
-            attempt + 1,
+          retry: attempt + 1,
           maxAttempts:
             safeMaxAttempts,
           message:
-            error instanceof
-            Error
+            error instanceof Error
               ? error.message
               : "Unknown error",
         },
@@ -1242,15 +1001,13 @@ export async function retryEcotrackDispatch(
       ) {
         await sleep(
           500 *
-            2 **
-              attempt,
+            2 ** attempt,
         );
       }
     }
   }
 
-  throw lastError instanceof
-    Error
+  throw lastError instanceof Error
     ? lastError
     : new Error(
         "Courier dispatch failed",
