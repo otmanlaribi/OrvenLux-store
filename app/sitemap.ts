@@ -7,7 +7,10 @@ type ProductItem = {
   created_at?: string | null;
 };
 
-const BASE_URL = "https://orvenlux.com";
+const BASE_URL = (
+  process.env.NEXT_PUBLIC_SITE_URL ??
+  "https://orven-lux-store.vercel.app"
+).replace(/\/+$/, "");
 
 export default async function sitemap(): Promise<MetadataRoute.Sitemap> {
   const now = new Date();
